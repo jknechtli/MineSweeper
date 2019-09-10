@@ -1,0 +1,83 @@
+.mine-sweeper {
+  background-color: #242424;
+  color: #e5e5e5;
+  min-height: 100vh;
+  text-align: center;
+}
+.mine-sweeper .page-content {
+  max-width: 500px;
+  height: 100vh;
+  /* margin: auto; */
+  margin-left: 2rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  margin-top: -4rem;
+}
+
+div.board {
+  width: 50rem;
+  height: 50rem;
+  max-width: 50rem;
+  max-height: 50rem;
+  min-width: 50rem;
+  min-height: 50rem;
+}
+
+button.tile {
+  width: 10%;
+  height: 10%;
+  color: #10364d;
+}
+
+button.tile.flag,
+button.tile.unseen {
+  background-color: #d6d6d6;
+  color: #d6d6d6;
+}
+
+button.tile.flag {
+  color: #e63939;
+}
+
+div.controls {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+}
+
+div.controls label {
+  position: absolute;
+  left: 5rem;
+}
+div.controls input {
+  position: absolute;
+  left: 9rem;
+}
+
+div.controls label#lblSeconds {
+  position: absolute;
+  left: 20rem;
+}
+div.controls label#seconds {
+  position: absolute;
+  left: 24rem;
+}
+
+div.gameover {
+  position: absolute;
+  background-color: #e63939;
+  color: #e63939;
+  background: #e63939;
+  opacity: 0.4;
+  width: 50rem;
+  height: 50rem;
+  max-width: 50rem;
+  max-height: 50rem;
+  min-width: 50rem;
+  min-height: 50rem;
+  z-index: 200;
+}

@@ -1,0 +1,19 @@
+.modal-responsive {
+  width: 100%;
+  max-width: 31rem;
+  background: #292929;
+}
+
+.modal-responsive h2 {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 0.4rem;
+}
+
+.modal-responsive .close-icon {
+  fill: #676a6c;
+}
+
+.modal-overlay {
+  padding: 1.5rem 0.5rem;
+}
