@@ -2,102 +2,56 @@ import './MineSweeper.css';
 
 import React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import Modal from '../modal/Modal';
+import { IBoardProps, IBoardState, ITile } from '../../interfaces/board';
 
-interface IState {
-  board: number[]; // -1 == flag | undfined
-  bombs: boolean[]; // same size as board
-  amountOfBombs: number;
-  showModal: boolean;
-  seconds: number;
-  gameover: boolean;
-  won: boolean;
-}
-
-class MineSweeper extends React.Component<RouteComponentProps<{}>, IState> {
-  public state: IState = {
-    board: [],
-    bombs: [],
-    amountOfBombs: 10,
-    seconds: 0,
-    showModal: false,
+class MineSweeper extends React.Component<RouteComponentProps<{}> & IBoardProps, IBoardState> {
+  public state: IBoardState = {
+    tiles: [],
     gameover: false,
-    won: false
   };
 
   public componentDidMount() {
-    this.reset();
+    if (this.props.getReset) {
+      this.props.getReset(this.reset);
+    }
+    this.createTiles()
+      .then(this.reset);
   }
 
   public render() {
-    const { board, showModal, amountOfBombs, gameover, seconds, won } = this.state;
+    const { tiles } = this.state;
 
     return (
       <div className="mine-sweeper">
-        <div className="page-content">
-          {won ? (
-            <Modal onClose={this.closeModal} title="WINNER" show={showModal}>
-              You won. <br />
-              Score: {seconds}
-            </Modal>
-          ) : (
-              <Modal onClose={this.closeModal} title="BOOOMMM!!!!" show={showModal}>
-                Game over. <br />
-                Score: {seconds}
-              </Modal>
-            )}
-          {gameover ? <div className="gameover"></div> : null}
-          <div className="controls">
-            <button id="reset" onClick={this.reset}>
-              Reset
+        {
+          tiles.map(tile =>
+            <button
+              key={tile.id}
+              name={tile.id + ''}
+              className={`tile ${tile.flagged ? 'flag' : ''} ${
+                tile.noOfBombs === undefined ? 'unseen' : ''
+                }`}
+              onContextMenu={this.flag}
+              onClick={this.click}
+            >
+              {tile.noOfBombs !== undefined && tile.noOfBombs !== 0 ? tile.noOfBombs : '-'}
             </button>
-            <label htmlFor="amountOfBombs">Bombs:</label>
-            <input
-              type="text"
-              name="amountOfBombs"
-              value={amountOfBombs + ''}
-              onChange={this.updateBombs}
-            />
-            <label htmlFor="seconds" id="lblSeconds">
-              Seconds:
-            </label>
-            <label id="seconds">{seconds}</label>
-          </div>
-          <div className="board">
-            {(() => {
-              const elements = [];
-              for (let i = 0; i < 100; i++) {
-                elements.push(
-                  <button
-                    key={i}
-                    name={i + ''}
-                    className={`tile ${board[i] === -1 ? 'flag' : ''} ${
-                      board[i] === undefined ? 'unseen' : ''
-                      }`}
-                    onContextMenu={this.flag}
-                    onClick={this.click}
-                  >
-                    {board[i] !== undefined && board[i] !== 0 ? board[i] : '-'}
-                  </button>
-                );
-              }
-              return elements;
-            })()}
-          </div>
-        </div>
+          )
+        }
       </div>
     );
   }
 
   private click = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const { board, bombs, gameover } = this.state;
+    const { tiles, gameover } = this.state;
     const clickedIndex = parseInt((event.target as any).name);
 
-    if (board[clickedIndex] === -1 || gameover) {
+    if (tiles[clickedIndex].flagged || gameover) {
       return;
     }
-    if (bombs[clickedIndex]) {
-      this.setState({ showModal: true, gameover: true });
+    if (tiles[clickedIndex].hasBomb) {
+      this.setState({ gameover: true });
+      this.props.gameOver(false)
       return;
     }
 
@@ -105,12 +59,20 @@ class MineSweeper extends React.Component<RouteComponentProps<{}>, IState> {
     let j = 0;
     while (FIFO.length > j) {
       const cIndex = FIFO[j];
+      let bombCount = 0
 
-      const { bombCount, indexes } = this.numberOfBombsInTheNeighborhood(cIndex);
-      board[cIndex] = bombCount;
+      // console.log(cIndex, tiles[cIndex])
+      tiles[cIndex].neighbors.forEach(neighbor => {
+        // console.log(neighbor)
+        if (tiles[neighbor].hasBomb) {
+          bombCount++;
+        }
+      })
+
+      tiles[cIndex].noOfBombs = bombCount;
 
       if (bombCount === 0) {
-        indexes.forEach(index => {
+        tiles[cIndex].neighbors.forEach(index => {
           if (index >= 0 && index < 100 && !FIFO.some(FIFOi => FIFOi === index)) {
             FIFO.push(index);
           }
@@ -118,108 +80,96 @@ class MineSweeper extends React.Component<RouteComponentProps<{}>, IState> {
       }
       j++;
     }
-    this.setState({ board });
+    this.setState({ tiles });
   };
 
   private flag = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const { board, bombs } = this.state;
+    const { tiles } = this.state;
     event.preventDefault();
     const clickedIndex = (event.target as any).name;
 
-    if (board[clickedIndex] === undefined) {
-      board[clickedIndex] = -1;
-    } else if (board[clickedIndex] === -1) {
-      board[clickedIndex] = undefined as any;
+    if (tiles[clickedIndex].noOfBombs === undefined) {
+      tiles[clickedIndex].noOfBombs = -1;
+      tiles[clickedIndex].flagged = true;
+    } else if (tiles[clickedIndex].noOfBombs === -1) {
+      tiles[clickedIndex].noOfBombs = undefined as any;
+      tiles[clickedIndex].flagged = false;
     }
 
-    const won = !bombs.some((b, i) => {
-      if (b && board[i] !== -1) {
+    const won = !tiles.some(tile => {
+      if (tile.hasBomb && !tile.flagged) {
         return true;
       }
       return false;
     });
 
-    this.setState({ board, won, showModal: won });
+    if (won) {
+      this.props.gameOver(true);
+    }
+
+    this.setState({ tiles, gameover: won });
   };
 
   private reset = async () => {
-    const { amountOfBombs } = this.state;
+    const { tiles } = this.state;
+    const { amountOfBombs } = this.props;
 
-    const bombs: boolean[] = [];
     let bombCount = 0;
+
+    tiles.forEach(t => {
+      t.hasBomb = false;
+      t.noOfBombs = undefined;
+    })
 
     while (bombCount < amountOfBombs) {
       const bomb = Math.floor(Math.random() * 99);
 
-      if (!bombs[bomb]) {
-        bombs[bomb] = true;
+      if (!tiles[bomb].hasBomb) {
+        tiles[bomb].hasBomb = true;
         bombCount++;
       }
     }
-    await this.setState({ bombs, board: [], seconds: 0, gameover: false });
-    this.startTimer();
+    await this.setState({ tiles, gameover: false });
   };
 
-  private numberOfBombsInTheNeighborhood = (index: number) => {
-    const { bombs } = this.state;
-    let bombCount = 0;
-    const indexes = [];
+  private createTiles = async () => {
+    const tiles: ITile[] = [];
 
-    for (let i = 0; i < 9; i++) {
-      if (i === 4) continue;
+    for (let index = 0; index < 100; index++) {
 
-      const side = 10;
-
-      const prt1 = (side + 1) * -1;
-      const prt2 = Math.floor(i / 3) * side;
-      const prt3 = i % 3;
-      const nIndex = index + prt1 + prt2 + prt3;
-
-      if (
-        // this is to check if the index is on the edge and the neighbor is on the other side of the board
-        (index % 10 === 0 && (nIndex + 1) % 10 === 0) ||
-        ((index + 1) % 10 === 0 && nIndex % 10 === 0)
-      ) {
-        continue;
+      const tile: ITile = {
+        flagged: false,
+        hasBomb: false,
+        id: index,
+        neighbors: [],
       }
 
-      indexes.push(nIndex);
+      for (let i = 0; i < 9; i++) {
+        if (i === 4) continue;
 
-      if (bombs[nIndex]) {
-        bombCount++;
+        const side = 10;
+
+        const prt1 = (side + 1) * -1;
+        const prt2 = Math.floor(i / 3) * side;
+        const prt3 = i % 3;
+        const nIndex = index + prt1 + prt2 + prt3;
+
+
+        if (
+          (index % 10 === 0 && (nIndex + 1) % 10 === 0) ||
+          ((index + 1) % 10 === 0 && nIndex % 10 === 0)
+        ) {
+          continue;
+        }
+
+        if (nIndex >= 0 && nIndex < 100) {
+          tile.neighbors.push(nIndex);
+        }
       }
+      tiles.push(tile);
     }
 
-    return { bombCount, indexes };
-  };
-
-  private closeModal = () => {
-    this.setState({ showModal: false });
-  };
-
-  private updateBombs = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    this.setState({ amountOfBombs: parseInt(value) });
-    this.reset();
-  };
-
-  private startTimer = async () => {
-    let { seconds } = this.state;
-    while (true) {
-      await this.delay();
-      seconds++;
-      if (this.state.showModal || this.state.gameover || this.state.seconds + 1 !== seconds) {
-        seconds = 0;
-        return;
-      }
-      this.setState({ seconds });
-    }
-  };
-
-  private delay = async () => {
-    return new Promise(r => {
-      setTimeout(r, 1000);
-    });
+    await this.setState({ tiles });
   };
 }
 

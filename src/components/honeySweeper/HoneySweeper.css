@@ -1,6 +1,6 @@
-body {
+/* body {
   background: #282828;
-}
+} */
 
 #grid {
   position: relative;
@@ -44,6 +44,18 @@ body {
   -ms-transform: skewY(-30deg) rotate(60deg);
   transform: skewY(-30deg) rotate(60deg);
   overflow: hidden;
+}
+
+#grid li .hexagon.revealed {
+  background: #c09000;
+}
+
+#grid li .hexagon.revealed {
+  background: #cd9f00;
+}
+
+h1.flagged {
+  color: red;
 }
 
 #grid li * {
