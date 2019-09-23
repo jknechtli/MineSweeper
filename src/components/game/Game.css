@@ -1,0 +1,82 @@
+.game {
+  background-color: #242424;
+  color: #e5e5e5;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.game .page-content {
+  max-width: 500px;
+  height: 100vh;
+  /* margin: auto; */
+  margin-left: 2rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+div.board {
+  width: 50rem;
+  height: 50rem;
+  max-width: 50rem;
+  max-height: 50rem;
+  min-width: 50rem;
+  min-height: 50rem;
+}
+
+div.controls {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+}
+
+div.controls label {
+  position: absolute;
+  left: 5rem;
+}
+div.controls input {
+  position: absolute;
+  left: 9rem;
+}
+
+div.controls label#lblSeconds {
+  position: absolute;
+  left: 20rem;
+}
+div.controls label#seconds {
+  position: absolute;
+  left: 24rem;
+}
+
+div.gameover {
+  position: absolute;
+  background-color: #e63939;
+  color: #e63939;
+  background: #e63939;
+  opacity: 0.4;
+  width: 50rem;
+  height: 50rem;
+  max-width: 50rem;
+  max-height: 50rem;
+  min-width: 50rem;
+  min-height: 50rem;
+  z-index: 200;
+}
+
+div.controls div.btn-group {
+  position: absolute;
+  display: flex;
+  flex-flow: wrap;
+  top: 0rem;
+  left: 30rem;
+  width: 10rem;
+}
+
+div.controls div.btn-group button {
+  width: 50%
+}
+
+div.controls div.btn-group button.active {
+  background-color: #fdbf00;
+}
+
